@@ -83,7 +83,7 @@ public class UserClinic implements UserDetails, Serializable {
     
     @JoinColumn(name = "id_userclinic_status", referencedColumnName = "id")
     @ManyToOne
-    private UserStatus status;
+    private Status status;
     
     @JoinColumn(name = "id_clinic", referencedColumnName = "id")
     @ManyToOne
@@ -148,11 +148,11 @@ public class UserClinic implements UserDetails, Serializable {
 		this.religion = religion;
 	}
 	
-	public UserStatus getStatus() {
+	public Status getStatus() {
 		return status;
 	}
 
-	public void setStatus(UserStatus status) {
+	public void setStatus(Status status) {
 		this.status = status;
 	}
 

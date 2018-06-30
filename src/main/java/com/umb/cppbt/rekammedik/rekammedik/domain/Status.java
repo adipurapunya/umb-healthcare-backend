@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Entity
 @Table(name = "user_status")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-public class UserStatus implements Serializable {
+public class Status implements Serializable {
     
 	private static final long serialVersionUID = 1L;
     
@@ -32,10 +32,10 @@ public class UserStatus implements Serializable {
     private String status;
     
 
-    public UserStatus() {
+    public Status() {
     }
 
-    public UserStatus(Long id, String status) {
+    public Status(Long id, String status) {
         this.id = id;
         this.status = status;
     }
