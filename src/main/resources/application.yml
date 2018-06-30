@@ -1,0 +1,24 @@
+server:
+  port: 8080
+  session:
+    timeout: 10
+
+spring:
+  profiles: prod
+  
+datasource:
+  sampleapp:
+    url: jdbc:postgresql://localhost:5432/umb
+    username: postgres
+    password: adminadmin 
+    driverClassName: org.postgresql.Driver
+    defaultSchema: public
+    maxPoolSize: 20
+    hibernate:
+      hbm2ddl.method: update
+      show_sql: false
+      format_sql: true
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      
+jwt:
+  expires_in: 1800 # second
