@@ -36,6 +36,10 @@ public class UserDoctor implements UserDetails, Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateBirth;
     
+    @Size(max = 70)
+    @Column(name = "place_birth")
+    private String placeBirth;
+    
     @Size(max = 255)
     @Column(name = "email")
     private String email;
@@ -89,7 +93,16 @@ public class UserDoctor implements UserDetails, Serializable {
     @Column(name = "specialist")
     private String specialist ;
     
-    @JoinColumn(name = "id_userdoctor_status", referencedColumnName = "id")
+    
+    public String getPlaceBirth() {
+		return placeBirth;
+	}
+
+	public void setPlaceBirth(String placeBirth) {
+		this.placeBirth = placeBirth;
+	}
+
+	@JoinColumn(name = "id_userdoctor_status", referencedColumnName = "id")
     @ManyToOne
     private Status status;
     

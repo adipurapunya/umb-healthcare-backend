@@ -36,11 +36,15 @@ public class UserAdmin implements UserDetails, Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateBirth;
     
-    @Size(max = 255)
+    @Size(max = 70)
+    @Column(name = "place_birth")
+    private String placeBirth;
+    
+    @Size(max = 70)
     @Column(name = "email")
     private String email;
     
-    @Size(max = 255)
+    @Size(max = 100)
     @Column(name = "full_name")
     private String fullName;
     
@@ -152,7 +156,15 @@ public class UserAdmin implements UserDetails, Serializable {
 	public void setStatus(Status status) {
 		this.status = status;
 	}
+	
+	
+	public String getPlaceBirth() {
+		return placeBirth;
+	}
 
+	public void setPlaceBirth(String placeBirth) {
+		this.placeBirth = placeBirth;
+	}
 
 	@JsonIgnore
     @Override

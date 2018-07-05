@@ -36,6 +36,10 @@ public class UserNurse implements UserDetails, Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateBirth;
     
+    @Size(max = 70)
+    @Column(name = "place_birth")
+    private String placeBirth;
+    
     @Size(max = 255)
     @Column(name = "email")
     private String email;
@@ -214,8 +218,16 @@ public class UserNurse implements UserDetails, Serializable {
     public String getUsername() {
         return username;
     }
+    
+    public String getPlaceBirth() {
+		return placeBirth;
+	}
 
-    @Override
+	public void setPlaceBirth(String placeBirth) {
+		this.placeBirth = placeBirth;
+	}
+
+	@Override
     public boolean isAccountNonExpired() {
         return true;
     }

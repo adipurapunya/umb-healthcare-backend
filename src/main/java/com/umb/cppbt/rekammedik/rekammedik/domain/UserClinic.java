@@ -36,6 +36,10 @@ public class UserClinic implements UserDetails, Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateBirth;
     
+    @Size(max = 70)
+    @Column(name = "place_birth")
+    private String placeBirth;
+    
     @Size(max = 255)
     @Column(name = "email")
     private String email;
@@ -274,8 +278,17 @@ public class UserClinic implements UserDetails, Serializable {
 	public void setGender(String gender) {
 		this.gender = gender;
 	}
+	
+	
+    public String getPlaceBirth() {
+		return placeBirth;
+	}
 
-    @Override
+	public void setPlaceBirth(String placeBirth) {
+		this.placeBirth = placeBirth;
+	}
+
+	@Override
     public int hashCode() {
         int hash = 0;
         hash += (id != null ? id.hashCode() : 0);

@@ -77,7 +77,7 @@ public class LoginCheckUserAdminRestController {
 				userPasswordDB = user.getPassword();
 			}
 			else{
-				//System.out.println("Empty");
+				System.out.println("Empty");
 			}
 		}
 		
