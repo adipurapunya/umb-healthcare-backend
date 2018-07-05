@@ -19,59 +19,58 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import com.umb.cppbt.rekammedik.rekammedik.domain.ResponMessage;
-import com.umb.cppbt.rekammedik.rekammedik.domain.UserAdmin;
-import com.umb.cppbt.rekammedik.rekammedik.repository.UserAdminDbRepository;
+import com.umb.cppbt.rekammedik.rekammedik.domain.UserDoctor;
+import com.umb.cppbt.rekammedik.rekammedik.repository.UserDoctorDbRepository;;
 
 
 @RestController
 @RequestMapping(value = "/api")
-public class UserAdminController {
+public class UserDoctorController {
 
-	public static final Logger logger = LoggerFactory.getLogger(UserAdminController.class);
+	public static final Logger logger = LoggerFactory.getLogger(UserDoctorController.class);
 	
 	@Autowired
-	private UserAdminDbRepository userAdminDbRepository;
+	private UserDoctorDbRepository userDoctorDbRepository;
 	
 	@PreAuthorize("hasAnyRole('ADMIN')")
-	@RequestMapping(value = "/userAdmin/{id}", method = RequestMethod.GET)
-	public ResponseEntity<Object> getUserAdminById(@PathVariable Long id, @RequestHeader(value="Authorization") String token)
+	@RequestMapping(value = "/userDoctor/{id}", method = RequestMethod.GET)
+	public ResponseEntity<Object> getuserDoctorById(@PathVariable Long id, @RequestHeader(value="Authorization") String token)
 	{
 		Claims claims = Jwts.parser().setSigningKey("secretkey").parseClaimsJws(token).getBody();
-		UserAdmin appUser = null;
+		UserDoctor appUser = null;
 		
 		int idUserFromToken = (Integer) claims.get("id");
 		List<String> roleUserFromToken = (List<String>) claims.get("roles");
 		
 		if(id == idUserFromToken || roleUserFromToken.contains("ROLE_ADMIN") == true){
 			
-			appUser = userAdminDbRepository.getOne(id);	
+			appUser = userDoctorDbRepository.getOne(id);	
 			
 			if (appUser != null){
-				logger.info("fetching user with id " + appUser.getId());
+				logger.info("fetching user doctor with id " + appUser.getId());
 				return new ResponseEntity<Object>(appUser, new HttpHeaders() ,HttpStatus.OK);
 			}
 			else{
-				logger.info("user not found");
+				logger.info("user doctor not found");
 				ResponMessage error = new ResponMessage();
 				error.setStatus(HttpStatus.NOT_FOUND);
-				error.setMessage("users NOT_FOUND");
+				error.setMessage("users doctor NOT_FOUND");
 				return new ResponseEntity<Object>(error ,new HttpHeaders() , HttpStatus.NOT_FOUND);
 			}
 		}
 		else{
-			logger.info("users UNAUTHORIZED");
+			logger.info("users doctor UNAUTHORIZED");
 			ResponMessage error = new ResponMessage();
 			error.setStatus(HttpStatus.UNAUTHORIZED);
-			error.setMessage("user with id "+ id +" is UNAUTHORIZED");
+			error.setMessage("user doctor with id "+ id +" is UNAUTHORIZED");
 
 			return new ResponseEntity<Object>(error , new HttpHeaders() ,HttpStatus.UNAUTHORIZED);
 		}
 	}
 	
-	
 	@PreAuthorize("hasAnyRole('ADMIN')")
-	@RequestMapping(value = "/userAdmin/{id}", method = RequestMethod.PUT )
-	public ResponseEntity<Object> updateUserAdmin(@PathVariable(value = "id") Long id,@RequestBody UserAdmin userAdmin ,  @RequestHeader(value="Authorization") String token) 
+	@RequestMapping(value = "/userDoctor/{id}", method = RequestMethod.PUT )
+	public ResponseEntity<Object> updateuserDoctor(@PathVariable(value = "id") Long id,@RequestBody UserDoctor userDoctor,  @RequestHeader(value="Authorization") String token) 
 	{
 		Claims claims = Jwts.parser().setSigningKey("secretkey").parseClaimsJws(token).getBody();
 		
@@ -80,41 +79,44 @@ public class UserAdminController {
 		
 		if(id == idUserFromToken || roleUserFromToken.contains("ROLE_ADMIN") == true){
 					
-			UserAdmin findFirst = userAdminDbRepository.getOne(id);
-			UserAdmin cekEmail = userAdminDbRepository.findByEmail(userAdmin.getEmail());
+			UserDoctor findFirst = userDoctorDbRepository.getOne(id);
+			UserDoctor cekEmail = userDoctorDbRepository.findByEmail(userDoctor.getEmail());
 			
 			String mes = null ;
 			
 			if(findFirst == null) {
 				ResponMessage message = new ResponMessage();
 				message.setStatus(HttpStatus.NOT_FOUND);
-				message.setMessage("user with id "+ id + " NOT_FOUND");
+				message.setMessage("user doctor with id "+ id + " NOT_FOUND");
 				return new ResponseEntity<Object>(message, new HttpHeaders() ,HttpStatus.NOT_FOUND);
 		    }
 			
-			if(userAdmin.getEmail() != null && cekEmail == null) findFirst.setEmail(userAdmin.getEmail());
-			if(userAdmin.getPassword() != null) findFirst.setPassword(userAdmin.getPassword());
-			if(userAdmin.getAddress() != null) findFirst.setAddress(userAdmin.getAddress());
-			if(userAdmin.getPlaceBirth() != null) findFirst.setPlaceBirth(userAdmin.getPlaceBirth());
-			if(userAdmin.getDateBirth() != null) findFirst.setDateBirth(userAdmin.getDateBirth());
-			if(userAdmin.getFullName() != null) findFirst.setFullName(userAdmin.getFullName());
-			if(userAdmin.getPhoneNumber() != null) findFirst.setPhoneNumber(userAdmin.getPhoneNumber());
-			if(userAdmin.getGender() != null) findFirst.setGender(userAdmin.getGender());
-			if(userAdmin.getReligion() != null)findFirst.setReligion(userAdmin.getReligion());
-			if(userAdmin.getPhotoPath() != null)findFirst.setPhotoPath(userAdmin.getPhotoPath());
-			if(userAdmin.getFirstRegistrationDate() != null)findFirst.setFirstRegistrationDate(userAdmin.getFirstRegistrationDate());
-			if(userAdmin.getLatitude() != null)findFirst.setLatitude(userAdmin.getLatitude());
-			if(userAdmin.getLongitude() != null)findFirst.setLongitude(userAdmin.getLongitude());
-			if(userAdmin.getLongitude() != null)findFirst.setLongitude(userAdmin.getLongitude());
-			if(userAdmin.getAdminCode() != null)findFirst.setAdminCode(userAdmin.getAdminCode());
-			if(userAdmin.getStatus() != null)findFirst.setStatus(userAdmin.getStatus());
+			if(userDoctor.getEmail() != null && cekEmail == null) findFirst.setEmail(userDoctor.getEmail());
+			if(userDoctor.getPassword() != null) findFirst.setPassword(userDoctor.getPassword());
+			if(userDoctor.getAddress() != null) findFirst.setAddress(userDoctor.getAddress());
+			if(userDoctor.getPlaceBirth() != null) findFirst.setPlaceBirth(userDoctor.getPlaceBirth());
+			if(userDoctor.getDateBirth() != null) findFirst.setDateBirth(userDoctor.getDateBirth());
+			if(userDoctor.getFullName() != null) findFirst.setFullName(userDoctor.getFullName());
+			if(userDoctor.getPhoneNumber() != null) findFirst.setPhoneNumber(userDoctor.getPhoneNumber());
+			if(userDoctor.getGender() != null) findFirst.setGender(userDoctor.getGender());
+			if(userDoctor.getReligion() != null)findFirst.setReligion(userDoctor.getReligion());
+			if(userDoctor.getPhotoPath() != null)findFirst.setPhotoPath(userDoctor.getPhotoPath());
+			if(userDoctor.getFirstRegistrationDate() != null)findFirst.setFirstRegistrationDate(userDoctor.getFirstRegistrationDate());
+			if(userDoctor.getLatitude() != null)findFirst.setLatitude(userDoctor.getLatitude());
+			if(userDoctor.getLongitude() != null)findFirst.setLongitude(userDoctor.getLongitude());
+			if(userDoctor.getLongitude() != null)findFirst.setLongitude(userDoctor.getLongitude());
+			if(userDoctor.getDoctorCode()!= null)findFirst.setDoctorCode(userDoctor.getDoctorCode());
+			if(userDoctor.getStatus() != null)findFirst.setStatus(userDoctor.getStatus());
+			if(userDoctor.getRegisterNumber() != null) findFirst.setRegisterNumber(userDoctor.getRegisterNumber());
+			if(userDoctor.getSpecialist() != null) findFirst.setSpecialist(userDoctor.getSpecialist());
+			if(userDoctor.getClinic() != null) findFirst.setClinic(userDoctor.getClinic());
 			if(cekEmail != null){
-				mes = "Succesfully Update user admin with id "+ findFirst.getId() + ", but username '"+ userAdmin.getEmail()  +"' that you input is already exist";
+				mes = "Succesfully Update user doctor with id "+ findFirst.getId() + ", but username '"+ userDoctor.getEmail()  +"' that you input is already exist";
 			}
 			else{
-				mes = "Succesfully Update user admin with id "+ findFirst.getId();
+				mes = "Succesfully Update user doctor with id "+ findFirst.getId();
 			}
-			userAdminDbRepository.save(findFirst);
+			userDoctorDbRepository.save(findFirst);
 			
 			ResponMessage message = new ResponMessage();
 			message.setStatus(HttpStatus.OK);
@@ -122,36 +124,36 @@ public class UserAdminController {
 			
 			return new ResponseEntity<Object>(message, new HttpHeaders() ,HttpStatus.OK);
 		}else{
-			logger.info("user UNAUTHORIZED");
+			logger.info("user doctor UNAUTHORIZED");
 			ResponMessage error = new ResponMessage();
 			error.setStatus(HttpStatus.UNAUTHORIZED);
-			error.setMessage("user with admin id "+ id +" is UNAUTHORIZED");
+			error.setMessage("user doctor with id "+ id +" is UNAUTHORIZED");
 			return new ResponseEntity<Object>(error , new HttpHeaders() ,HttpStatus.UNAUTHORIZED);
 		}
 	}
 	
 	@PreAuthorize("hasAnyRole('ADMIN','SUPERADMIN', 'ROLE_CLINIC')")
-	@RequestMapping(value = "/userAdmin/{id}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/userDoctor/{id}", method = RequestMethod.DELETE)
 	public ResponseEntity<Object> deleteUser(@PathVariable Long id, @RequestHeader(value="Authorization") String token) {
 		
 		Claims claims = Jwts.parser().setSigningKey("secretkey").parseClaimsJws(token).getBody();
-		UserAdmin userAdmin = null;
+		UserDoctor userDoctor = null;
 		
 		int idUserFromToken = (Integer) claims.get("id");
 		List<String> roleUserFromToken = (List<String>) claims.get("roles");
 		
 		if(id == idUserFromToken || roleUserFromToken.contains("ROLE_ADMIN") == true){
-			userAdmin = userAdminDbRepository.getOne(id);
+			userDoctor = userDoctorDbRepository.getOne(id);
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 			String loggedUsername = auth.getName();
-			if (userAdmin == null){
-				logger.info("user NOT FOUND");
+			if (userDoctor == null){
+				logger.info("user doctor NOT FOUND");
 				ResponMessage error = new ResponMessage();
 				error.setStatus(HttpStatus.NOT_FOUND);
-				error.setMessage("user NOT FOUND");
+				error.setMessage("user doctor NOT FOUND");
 				return new ResponseEntity<Object>(error , new HttpHeaders() ,HttpStatus.NOT_FOUND);
 			}
-			else if (userAdmin.getEmail().equalsIgnoreCase(loggedUsername)){
+			else if (userDoctor.getEmail().equalsIgnoreCase(loggedUsername)){
 				//throw new RuntimeException("You cannot delete your account");
 				logger.info("You cannot delete your account");
 				ResponMessage message = new ResponMessage();
@@ -161,19 +163,19 @@ public class UserAdminController {
 				
 			}
 			else{
-				userAdminDbRepository.deleteById(id);
-				logger.info("user sucessfully deleted");
+				userDoctorDbRepository.deleteById(id);
+				logger.info("user doctor sucessfully deleted");
 				ResponMessage message = new ResponMessage();
 				message.setStatus(HttpStatus.OK);
-				message.setMessage("user with id "+id+" sucessfully deleted");
+				message.setMessage("user doctor with id "+id+" sucessfully deleted");
 				return new ResponseEntity<Object>(message , new HttpHeaders() ,HttpStatus.OK);
 			}
 		}
 		else{
-			logger.info("user UNAUTHORIZED");
+			logger.info("user nurse UNAUTHORIZED");
 			ResponMessage error = new ResponMessage();
 			error.setStatus(HttpStatus.UNAUTHORIZED);
-			error.setMessage("user with id "+ id +" is UNAUTHORIZED");
+			error.setMessage("user doctor with id "+ id +" is UNAUTHORIZED");
 			return new ResponseEntity<Object>(error , new HttpHeaders() ,HttpStatus.UNAUTHORIZED);
 		}
 	}
