@@ -74,7 +74,7 @@ public class UserDoctor implements UserDetails, Serializable {
     private Float longitude;
     
     @Size(max = 10)
-    @Column(name = "nurse_code")
+    @Column(name = "doctor_code")
     private String doctorCode;
        
     @Size(max = 50)

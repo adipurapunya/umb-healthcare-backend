@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.umb.cppbt.rekammedik.rekammedik.domain.ResponMessage;
+import com.umb.cppbt.rekammedik.rekammedik.domain.Status;
 import com.umb.cppbt.rekammedik.rekammedik.domain.UserNurse;
 import com.umb.cppbt.rekammedik.rekammedik.repository.UserNurseDbRepository;
 
@@ -41,7 +42,7 @@ public class LoginCheckUserNurseRestController {
     
 	@RequestMapping(value = "/register/userNurse", method = RequestMethod.POST /*, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE */)
 	public ResponseEntity<Object> createUser(@RequestBody UserNurse user) {
-		if(userNurseDbRepository.findByEmail(user.getEmail()) != null){
+		if(userNurseDbRepository.findNurseByEmail(user.getEmail()) != null){
 			ResponMessage error = new ResponMessage();
 			error.setStatus(HttpStatus.UNAUTHORIZED);
 			error.setMessage("email is already exist");
@@ -53,7 +54,13 @@ public class LoginCheckUserNurseRestController {
 		roles.add("ROLE_NURSE");
 		user.setRoles(roles);
 		user.setPassword(Encrypt(passEncrypt));
+		Status sts = new Status();
+		long id = 1;
+		sts.setId(id);
+		user.setStatus(sts);
 		UserNurse dataInsert = userNurseDbRepository.save(user);
+		user.setNurseCode("NUR00"+dataInsert.getId());
+		userNurseDbRepository.save(user);
 		
 		return new ResponseEntity<Object>(dataInsert, HttpStatus.CREATED);
 	}
@@ -67,7 +74,7 @@ public class LoginCheckUserNurseRestController {
 		
 		if( email != "" || password != "" ){
 			try {
-				user = userNurseDbRepository.findByEmail(email);
+				user = userNurseDbRepository.findNurseByEmail(email);
 			} 
 			catch (Exception e) {
 				System.out.println("Error Message" + e.getMessage());

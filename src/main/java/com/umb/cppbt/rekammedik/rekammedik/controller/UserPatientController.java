@@ -8,6 +8,10 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.umb.cppbt.rekammedik.rekammedik.domain.ResponMessage;
@@ -35,7 +40,19 @@ public class UserPatientController {
 	@Autowired
 	private UserPatientDbRepository userPatientDbRepository;
 	
-	@PreAuthorize("hasAnyRole('ADMIN')")
+	private Pageable createPageRequest(int page, int size, String sort, String field) {
+		Sort sorts;
+		if(sort.equals("ASC")){
+			sorts = Sort.by(field).ascending();
+		}
+		else{
+			sorts = Sort.by(field).descending();
+		}
+		Pageable pageable = PageRequest.of(page, size, sorts);
+		return pageable;
+	}
+	
+	@PreAuthorize("hasAnyRole('ADMIN', 'CLINIC', 'NURSE', 'DOCTOR', 'PATIENT')")
 	@RequestMapping(value = "/userPatient/{id}", method = RequestMethod.GET)
 	public ResponseEntity<Object> getuserPatientById(@PathVariable Long id, @RequestHeader(value="Authorization") String token)
 	{
@@ -46,9 +63,7 @@ public class UserPatientController {
 		List<String> roleUserFromToken = (List<String>) claims.get("roles");
 		
 		if(id == idUserFromToken || roleUserFromToken.contains("ROLE_ADMIN") == true){
-			
 			appUser = userPatientDbRepository.getOne(id);	
-			
 			if (appUser != null){
 				logger.info("fetching user patient with id " + appUser.getId());
 				return new ResponseEntity<Object>(appUser, new HttpHeaders() ,HttpStatus.OK);
@@ -66,12 +81,11 @@ public class UserPatientController {
 			ResponMessage error = new ResponMessage();
 			error.setStatus(HttpStatus.UNAUTHORIZED);
 			error.setMessage("user patient with id "+ id +" is UNAUTHORIZED");
-
 			return new ResponseEntity<Object>(error , new HttpHeaders() ,HttpStatus.UNAUTHORIZED);
 		}
 	}
 	
-	@PreAuthorize("hasAnyRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'CLINIC', 'NURSE', 'DOCTOR', 'PATIENT')")
 	@RequestMapping(value = "/userPatient/{id}", method = RequestMethod.PUT )
 	public ResponseEntity<Object> updateuserPatient(@PathVariable(value = "id") Long id,@RequestBody UserPatient userPatient,  @RequestHeader(value="Authorization") String token) 
 	{
@@ -80,7 +94,7 @@ public class UserPatientController {
 		int idUserFromToken = (Integer) claims.get("id");
 		List<String> roleUserFromToken = (List<String>) claims.get("roles");
 		
-		if(id == idUserFromToken || roleUserFromToken.contains("ROLE_ADMIN") == true){
+		if(id == idUserFromToken || roleUserFromToken.contains("ROLE_ADMIN") == true || roleUserFromToken.contains("ROLE_CLINIC") == true || roleUserFromToken.contains("ROLE_NURSE") == true){
 					
 			UserPatient findFirst = userPatientDbRepository.getOne(id);
 			UserPatient cekEmail = userPatientDbRepository.findByEmail(userPatient.getEmail());
@@ -110,7 +124,9 @@ public class UserPatientController {
 			if(userPatient.getLongitude() != null)findFirst.setLongitude(userPatient.getLongitude());
 			if(userPatient.getPatientCode() != null)findFirst.setPatientCode(userPatient.getPatientCode());
 			if(userPatient.getStatus() != null)findFirst.setStatus(userPatient.getStatus());
+			if(userPatient.getOccupation() != null) findFirst.setOccupation(userPatient.getOccupation());
 			if(userPatient.getClinic() != null) findFirst.setClinic(userPatient.getClinic());
+			if(userPatient.getDeviceCode() != null) findFirst.setDeviceCode(userPatient.getDeviceCode());
 			if(cekEmail != null){
 				mes = "Succesfully Update user patient with id "+ findFirst.getId() + ", but username '"+ userPatient.getEmail()  +"' that you input is already exist";
 			}
@@ -133,7 +149,7 @@ public class UserPatientController {
 		}
 	}
 	
-	@PreAuthorize("hasAnyRole('ADMIN','SUPERADMIN', 'ROLE_CLINIC')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'CLINIC', 'NURSE', 'DOCTOR', 'PATIENT')")
 	@RequestMapping(value = "/userPatient/{id}", method = RequestMethod.DELETE)
 	public ResponseEntity<Object> deleteUser(@PathVariable Long id, @RequestHeader(value="Authorization") String token) {
 		
@@ -161,7 +177,6 @@ public class UserPatientController {
 				message.setStatus(HttpStatus.OK);
 				message.setMessage("You cannot delete your account");
 				return new ResponseEntity<Object>(message , new HttpHeaders() ,HttpStatus.OK);
-				
 			}
 			else{
 				userPatientDbRepository.deleteById(id);
@@ -181,5 +196,84 @@ public class UserPatientController {
 		}
 	}
 	
+	@PreAuthorize("hasAnyRole('ADMIN', 'CLINIC', 'NURSE', 'DOCTOR')")
+	@RequestMapping(value = "/patiensWithPagination", method = RequestMethod.GET)
+	public Page<UserPatient> getAllPatientsWithPagination(@RequestParam("page") int page, @RequestParam("size") int size, @RequestParam("sort") String sort, @RequestParam("sortField") String sortField) {
+		Page<UserPatient> data = userPatientDbRepository.findPatientWithPagination(createPageRequest(page, size, sort, sortField));
+		logger.info("Fetching All Patient Details with pagination order by " + sortField + " " + sort);
+		return data;
+	}
+	
+	@PreAuthorize("hasAnyRole('ADMIN', 'CLINIC', 'NURSE', 'DOCTOR')")
+	@RequestMapping(value = "/patiensWithPaginationByIdClinic", method = RequestMethod.GET)
+	public Page<UserPatient> getAllPatientsWithPaginationByIdClinic(@RequestParam("page") int page, @RequestParam("size") int size, @RequestParam("sort") String sort, @RequestParam("sortField") String sortField, @RequestParam("clinicId") Integer clinicId) {
+		Long id = new Long(clinicId);
+		Page<UserPatient> data = userPatientDbRepository.findPatientWithPaginationByIdClinic(id,createPageRequest(page, size, sort, sortField));
+		logger.info("Fetching All Patient Details with pagination order by " + sortField + " " + sort +" by id clinic "+ id);
+		return data;
+	}
+	
+	@PreAuthorize("hasAnyRole('ADMIN', 'CLINIC', 'NURSE', 'DOCTOR')")
+	@RequestMapping(value = "/patiensWithPaginationByField", method = RequestMethod.GET)
+	public Page<UserPatient> getAllUsersWithPaginationByField(@RequestParam("page") int page, @RequestParam("size") int size, @RequestParam("sort") String sort, @RequestParam("sortField") String sortField, @RequestParam("searchField") String searchField, @RequestParam("value") String value) {
+		
+		Page<UserPatient> data = null;
+		
+		if(searchField.equals("fullName")){
+			data = userPatientDbRepository.findPatientByFullName(value, createPageRequest(page, size, sort, sortField));
+		}
+		else if(searchField.equals("id")){
+			Long id = new Long(value);
+			data = userPatientDbRepository.findPatientById(id, createPageRequest(page, size, sort, sortField));
+		}
+		else if(searchField.equals("patientCode")){
+			data = userPatientDbRepository.findPatientByPatientCode(value, createPageRequest(page, size, sort, sortField));
+		}
+		else if(searchField.equals("email")){
+			data = userPatientDbRepository.findPatientByEmail(value, createPageRequest(page, size, sort, sortField));
+		}
+		else if(searchField.equals("phoneNumber")){
+			data = userPatientDbRepository.findPatientByPhoneNumber(value, createPageRequest(page, size, sort, sortField));
+		}
+		else if(searchField.equals("deviceCode")){
+			data = userPatientDbRepository.findPatientByDeviceCode(value, createPageRequest(page, size, sort, sortField));
+		}
+		
+		logger.info("Fetching patients with "+ searchField +" order by " + sortField + " " + sort);
+		
+		return data;
+	}
+	
+	@PreAuthorize("hasAnyRole('ADMIN', 'CLINIC', 'NURSE', 'DOCTOR')")
+	@RequestMapping(value = "/patiensWithPaginationByFieldByIdClinic", method = RequestMethod.GET)
+	public Page<UserPatient> getAllUsersWithPaginationByFieldByIdClinic(@RequestParam("page") int page, @RequestParam("size") int size, @RequestParam("sort") String sort, @RequestParam("sortField") String sortField, @RequestParam("searchField") String searchField, @RequestParam("value") String value, @RequestParam("clinicId") Integer clinicId) {
+		
+		Page<UserPatient> data = null;
+		Long idClinic = new Long(clinicId);
+		
+		if(searchField.equals("fullName")){
+			data = userPatientDbRepository.findPatientByFullNameByIdClinic(value, idClinic ,createPageRequest(page, size, sort, sortField));
+		}
+		else if(searchField.equals("id")){
+			Long id = new Long(value);
+			data = userPatientDbRepository.findPatientByIdByIdClinic(id, idClinic ,createPageRequest(page, size, sort, sortField));
+		}
+		else if(searchField.equals("patientCode")){
+			data = userPatientDbRepository.findPatientByPatientCodeByIdClinic(value, idClinic ,createPageRequest(page, size, sort, sortField));
+		}
+		else if(searchField.equals("email")){
+			data = userPatientDbRepository.findPatientByEmailByIdClinic(value, idClinic ,createPageRequest(page, size, sort, sortField));
+		}
+		else if(searchField.equals("phoneNumber")){
+			data = userPatientDbRepository.findPatientByPhoneNumberByIdClinic(value, idClinic ,createPageRequest(page, size, sort, sortField));
+		}
+		else if(searchField.equals("deviceCode")){
+			data = userPatientDbRepository.findPatientByDeviceCodeByIdClinic(value, idClinic ,createPageRequest(page, size, sort, sortField));
+		}
+		
+		logger.info("Fetching patients with "+ searchField +" order by " + sortField + " " + sort);
+		
+		return data;
+	}
 	
 }

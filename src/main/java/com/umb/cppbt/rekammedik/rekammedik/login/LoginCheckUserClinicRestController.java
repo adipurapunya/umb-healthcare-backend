@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.umb.cppbt.rekammedik.rekammedik.domain.ResponMessage;
+import com.umb.cppbt.rekammedik.rekammedik.domain.Status;
 import com.umb.cppbt.rekammedik.rekammedik.domain.UserClinic;
 import com.umb.cppbt.rekammedik.rekammedik.repository.UserClinicDbRepository;
 
@@ -41,7 +42,7 @@ public class LoginCheckUserClinicRestController {
     
 	@RequestMapping(value = "/register/userClinic", method = RequestMethod.POST /*, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE */)
 	public ResponseEntity<Object> createUser(@RequestBody UserClinic user) {
-		if(userClinicDbRepository.findByEmail(user.getEmail()) != null){
+		if(userClinicDbRepository.findUserClinicByEmail(user.getEmail()) != null){
 			ResponMessage error = new ResponMessage();
 			error.setStatus(HttpStatus.UNAUTHORIZED);
 			error.setMessage("email is already exist");
@@ -53,7 +54,13 @@ public class LoginCheckUserClinicRestController {
 		roles.add("ROLE_CLINIC");
 		user.setRoles(roles);
 		user.setPassword(Encrypt(passEncrypt));
+		Status sts = new Status();
+		long id = 1;
+		sts.setId(id);
+		user.setStatus(sts);
 		UserClinic dataInsert = userClinicDbRepository.save(user);
+		user.setUserCode("CLC00"+dataInsert.getId());
+		userClinicDbRepository.save(user);
 		
 		return new ResponseEntity<Object>(dataInsert, HttpStatus.CREATED);
 	}
@@ -67,7 +74,7 @@ public class LoginCheckUserClinicRestController {
 		
 		if( email != "" || password != "" ){
 			try {
-				user = userClinicDbRepository.findByEmail(email);
+				user = userClinicDbRepository.findUserClinicByEmail(email);
 			} 
 			catch (Exception e) {
 				System.out.println("Error Message" + e.getMessage());

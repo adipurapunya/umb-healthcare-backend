@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.umb.cppbt.rekammedik.rekammedik.domain.ResponMessage;
+import com.umb.cppbt.rekammedik.rekammedik.domain.Status;
 import com.umb.cppbt.rekammedik.rekammedik.domain.UserPatient;
 import com.umb.cppbt.rekammedik.rekammedik.repository.UserPatientDbRepository;
 
@@ -53,7 +54,15 @@ public class LoginCheckUserPatientRestController {
 		roles.add("ROLE_PATIENT");
 		user.setRoles(roles);
 		user.setPassword(Encrypt(passEncrypt));
+		Status sts = new Status();
+		long id = 1;
+		sts.setId(id);
+		user.setStatus(sts);
+
 		UserPatient dataInsert = userPatientDbRepository.save(user);
+		user.setPatientCode("PS00"+dataInsert.getId());
+		userPatientDbRepository.save(user);
+		
 		
 		return new ResponseEntity<Object>(dataInsert, HttpStatus.CREATED);
 	}

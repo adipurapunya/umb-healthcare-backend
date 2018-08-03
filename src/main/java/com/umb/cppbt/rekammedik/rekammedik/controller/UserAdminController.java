@@ -81,7 +81,7 @@ public class UserAdminController {
 		if(id == idUserFromToken || roleUserFromToken.contains("ROLE_ADMIN") == true){
 					
 			UserAdmin findFirst = userAdminDbRepository.getOne(id);
-			UserAdmin cekEmail = userAdminDbRepository.findByEmail(userAdmin.getEmail());
+			UserAdmin cekEmail = userAdminDbRepository.findUserAdminByEmail(userAdmin.getEmail());
 			
 			String mes = null ;
 			

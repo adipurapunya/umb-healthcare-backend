@@ -89,6 +89,10 @@ public class UserPatient implements UserDetails, Serializable {
     @Column(name = "occupation")
     private String occupation;
     
+    @Size(max = 50)
+    @Column(name = "device_code")
+    private String deviceCode;
+    
     @JoinColumn(name = "id_userpatient_status", referencedColumnName = "id")
     @ManyToOne
     private Status status;
@@ -233,6 +237,14 @@ public class UserPatient implements UserDetails, Serializable {
 
 	public void setFullName(String fullName) {
 		this.fullName = fullName;
+	}
+
+	public String getDeviceCode() {
+		return deviceCode;
+	}
+
+	public void setDeviceCode(String deviceCode) {
+		this.deviceCode = deviceCode;
 	}
 
 	@Override

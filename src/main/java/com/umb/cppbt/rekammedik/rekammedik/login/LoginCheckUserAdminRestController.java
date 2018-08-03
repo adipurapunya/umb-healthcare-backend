@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.umb.cppbt.rekammedik.rekammedik.domain.ResponMessage;
+import com.umb.cppbt.rekammedik.rekammedik.domain.Status;
 import com.umb.cppbt.rekammedik.rekammedik.domain.UserAdmin;
 import com.umb.cppbt.rekammedik.rekammedik.repository.UserAdminDbRepository;
 
@@ -41,7 +42,7 @@ public class LoginCheckUserAdminRestController {
     
 	@RequestMapping(value = "/register/userAdmin", method = RequestMethod.POST /*, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE */)
 	public ResponseEntity<Object> createUser(@RequestBody UserAdmin user) {
-		if(userAdminDbRepository.findByEmail(user.getEmail()) != null){
+		if(userAdminDbRepository.findUserAdminByEmail(user.getEmail()) != null){
 			ResponMessage error = new ResponMessage();
 			error.setStatus(HttpStatus.UNAUTHORIZED);
 			error.setMessage("email is already exist");
@@ -53,7 +54,13 @@ public class LoginCheckUserAdminRestController {
 		roles.add("ROLE_ADMIN");
 		user.setRoles(roles);
 		user.setPassword(Encrypt(passEncrypt));
+		Status sts = new Status();
+		long id = 1;
+		sts.setId(id);
+		user.setStatus(sts);
 		UserAdmin dataInsert = userAdminDbRepository.save(user);
+		user.setAdminCode("ADI00"+dataInsert.getId());
+		userAdminDbRepository.save(user);
 		
 		return new ResponseEntity<Object>(dataInsert, HttpStatus.CREATED);
 	}
@@ -67,7 +74,7 @@ public class LoginCheckUserAdminRestController {
 		
 		if( email != "" || password != "" ){
 			try {
-				user = userAdminDbRepository.findByEmail(email);
+				user = userAdminDbRepository.findUserAdminByEmail(email);
 			} 
 			catch (Exception e) {
 				System.out.println("Error Message" + e.getMessage());

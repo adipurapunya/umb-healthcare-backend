@@ -6,6 +6,7 @@
 package com.umb.cppbt.rekammedik.rekammedik.domain;
 
 import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -13,6 +14,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.Size;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
@@ -31,6 +33,10 @@ public class Clinic implements Serializable {
     @Column(name = "name_of_clinic")
     private String nameOfClinic;
     
+    @Size(max = 20)
+    @Column(name = "code_of_clinic")
+    private String codeOfClinic;
+    
     @Size(max = 255)
     @Column(name = "address")
     private String address;
@@ -38,6 +44,21 @@ public class Clinic implements Serializable {
     @Size(max = 20)
     @Column(name = "status")
     private String status;
+
+	public Clinic() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+	public Clinic(@Size(max = 100) String nameOfClinic,
+			@Size(max = 20) String codeOfClinic,
+			@Size(max = 255) String address, @Size(max = 20) String status) {
+		super();
+		this.nameOfClinic = nameOfClinic;
+		this.codeOfClinic = codeOfClinic;
+		this.address = address;
+		this.status = status;
+	}
 
 	public Long getId() {
 		return id;
@@ -55,6 +76,14 @@ public class Clinic implements Serializable {
 		this.nameOfClinic = nameOfClinic;
 	}
 
+	public String getCodeOfClinic() {
+		return codeOfClinic;
+	}
+
+	public void setCodeOfClinic(String codeOfClinic) {
+		this.codeOfClinic = codeOfClinic;
+	}
+
 	public String getAddress() {
 		return address;
 	}
@@ -70,5 +99,6 @@ public class Clinic implements Serializable {
 	public void setStatus(String status) {
 		this.status = status;
 	}
-   
+    
+
 }
