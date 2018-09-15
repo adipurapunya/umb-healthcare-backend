@@ -19,10 +19,12 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlTransient;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
-@Table(name = "transaction_nurse_list")
+@Table(name = "nurse_list_forTrx")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class TransactionNurseList implements Serializable {
     
@@ -63,9 +65,10 @@ public class TransactionNurseList implements Serializable {
     @ManyToOne
     private UserNurse idNurse;
 	
-    @JoinColumn(name = "transaction_id", referencedColumnName = "id")
+	@JoinColumn(name = "transaction_id", referencedColumnName = "id")
     @ManyToOne
     private Transaction idTransaction;
+	
 
 	public TransactionNurseList() {
 		super();
@@ -144,6 +147,8 @@ public class TransactionNurseList implements Serializable {
 		this.idNurse = idNurse;
 	}
 
+	@XmlTransient
+	@JsonIgnoreProperties
 	public Transaction getIdTransaction() {
 		return idTransaction;
 	}
@@ -151,6 +156,5 @@ public class TransactionNurseList implements Serializable {
 	public void setIdTransaction(Transaction idTransaction) {
 		this.idTransaction = idTransaction;
 	}
-	
-   
+
 }

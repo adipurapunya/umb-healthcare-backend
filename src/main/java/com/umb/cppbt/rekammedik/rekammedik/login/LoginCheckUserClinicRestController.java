@@ -13,6 +13,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +40,9 @@ public class LoginCheckUserClinicRestController {
     private static final int KEY_SIZE = 128;
     private static final int ITERATION_COUNT = 1000;
     private static final String PASSPHRASE = "pptik2018pptik18";
+    
+    @Value("${jwt.expires_in}")
+    private int EXPIRES_IN;
     
 	@RequestMapping(value = "/register/userClinic", method = RequestMethod.POST /*, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE */)
 	public ResponseEntity<Object> createUser(@RequestBody UserClinic user) {
@@ -90,7 +94,7 @@ public class LoginCheckUserClinicRestController {
 		
 		if (user != null && Decrypt(userPasswordDB).equals(password)) {
 			
-			Date exp = new Date(System.currentTimeMillis() + ( 10000 * 1800 ));
+			Date exp = new Date(System.currentTimeMillis() + ( 10000 * EXPIRES_IN ));
 			token = Jwts.builder()
 					.setSubject(email)
 					.setExpiration(exp)

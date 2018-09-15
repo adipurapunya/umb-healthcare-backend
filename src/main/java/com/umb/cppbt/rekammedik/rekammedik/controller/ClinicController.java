@@ -1,5 +1,8 @@
 package com.umb.cppbt.rekammedik.rekammedik.controller;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -13,8 +16,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
 import com.umb.cppbt.rekammedik.rekammedik.domain.Clinic;
 import com.umb.cppbt.rekammedik.rekammedik.repository.ClinicDbRepository;
+
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.Authentication;
 
 
 @RestController
@@ -26,12 +35,27 @@ public class ClinicController {
 	@Autowired
 	private ClinicDbRepository clinicDbRepository;
 	
+
+    public String findLoggedInEmail() {
+    	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String name = auth.getName(); //get logged in username
+        return name;
+    }
+    
+    public String findLoggedInUsername() {
+    	User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String name = user.getUsername(); //get logged in username
+        return name;
+    }
+	
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_PATIENT', 'ROLE_CLINIC')")
 	@RequestMapping(value = "/clinics", method = RequestMethod.GET)
-	public List<Clinic> getAllClinics() 
+	public ResponseEntity<Object> getAllClinics() 
 	{
+		System.out.println("Email : "+findLoggedInEmail());
+		System.out.println("Username : "+findLoggedInUsername());
 		logger.info("Fetching All Clinics");
-		return clinicDbRepository.findAll();
+		return new ResponseEntity<Object>(clinicDbRepository.findAll(), HttpStatus.OK);
 	}
 	
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_CLINIC')")

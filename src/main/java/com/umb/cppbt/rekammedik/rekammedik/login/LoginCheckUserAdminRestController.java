@@ -13,9 +13,14 @@ import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -34,11 +39,17 @@ public class LoginCheckUserAdminRestController {
 	@Autowired
 	private UserAdminDbRepository userAdminDbRepository;
 	
+	//@Autowired
+	//private AuthenticationManager authenticationManager;
+	
 	private static final String IV =   "dc0da04af8fee58593442bf834b30739";
     private static final String SALT = "dc0da04af8fee58593442bf834b30739";
     private static final int KEY_SIZE = 128;
     private static final int ITERATION_COUNT = 1000;
     private static final String PASSPHRASE = "pptik2018pptik18";
+    
+    @Value("${jwt.expires_in}")
+    private int EXPIRES_IN;
     
 	@RequestMapping(value = "/register/userAdmin", method = RequestMethod.POST /*, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE */)
 	public ResponseEntity<Object> createUser(@RequestBody UserAdmin user) {
@@ -90,7 +101,16 @@ public class LoginCheckUserAdminRestController {
 		
 		if (user != null && Decrypt(userPasswordDB).equals(password)) {
 			
-			Date exp = new Date(System.currentTimeMillis() + ( 10000 * 1800 ));
+			/*
+			// Perform the security
+	        final Authentication authentication = 
+	        		authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email,userPasswordDB));
+
+	        // Inject into security context
+	        SecurityContextHolder.getContext().setAuthentication(authentication);
+			*/
+	        
+			Date exp = new Date(System.currentTimeMillis() + ( 10000 * EXPIRES_IN ));
 			token = Jwts.builder()
 					.setSubject(email)
 					.setExpiration(exp)

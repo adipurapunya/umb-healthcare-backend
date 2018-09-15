@@ -3,6 +3,7 @@ package com.umb.cppbt.rekammedik.rekammedik.config;
 import javax.servlet.ServletContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +12,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -41,28 +43,40 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
-		.cors().and()
+		.cors()
+		.and()
 		.authorizeRequests()
 				.anyRequest().authenticated()
-				.and().logout().logoutSuccessHandler(logoutSuccess).deleteCookies("JSESSIONID")
+				//.and().logout().logoutSuccessHandler(logoutSuccess).deleteCookies("JSESSIONID")
+				//.and().exceptionHandling()
 				.and()
 				.csrf().disable()
 				.addFilterBefore(new JWTFilter(), UsernamePasswordAuthenticationFilter.class)
 				.httpBasic();
+				//.and()
+				//.sessionManagement()
+				//.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+		    	//.maximumSessions(1)
+		    	//.maxSessionsPreventsLogin(true)
+		    	//.sessionRegistry(sessionRegistry());
 	}
 	
 	@Bean
-	public SessionRegistry sessionRegistry() 
-	{
+	public SessionRegistry sessionRegistry() {
 	    SessionRegistry sessionRegistry = new SessionRegistryImpl();
 	    return sessionRegistry;
 	}
-	
+	/*
 	@Bean
-    public static HttpSessionEventPublisher httpSessionEventPublisher() 
-	{
+    public static HttpSessionEventPublisher httpSessionEventPublisher() {
         return new HttpSessionEventPublisher();
     }
+	*/
+	
+	@Bean
+	public ServletListenerRegistrationBean<HttpSessionEventPublisher> httpSessionEventPublisher2() {
+	    return new ServletListenerRegistrationBean<HttpSessionEventPublisher>(new HttpSessionEventPublisher());
+	}
 	
 }
 

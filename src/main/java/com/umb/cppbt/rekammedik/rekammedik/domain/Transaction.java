@@ -22,7 +22,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.Size;
+import javax.xml.bind.annotation.XmlTransient;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
@@ -98,14 +100,26 @@ public class Transaction implements Serializable {
 	@Size(max = 50)
 	@Column(name = "order_number")
     private String orderNumber;
+	
+	@Size(max = 255)
+	@Column(name = "diagnosis")
+    private String diagnosis;
+	
+	@Size(max = 255)
+	@Column(name = "medicine")
+    private String medicine;
+	
+	@Size(max = 255)
+	@Column(name = "nurse_action")
+    private String nurseAction;
     
-	@OneToMany(cascade= CascadeType.REMOVE)
+	@OneToMany(mappedBy = "idTransaction", cascade= CascadeType.REMOVE)
     private List<TransactionNurseList> nurseList;
 	
-	@OneToMany(cascade= CascadeType.REMOVE)
+	@OneToMany(mappedBy = "idTransaction", cascade= CascadeType.REMOVE)
     private List<TransactionDoctorList> doctorList;
 	
-	@OneToMany(cascade= CascadeType.REMOVE)
+	@OneToMany(mappedBy = "idTransaction",  cascade= CascadeType.REMOVE)
     private List<TransactionServiceList> serviceList;
     
 	@JoinColumn(name = "transaction_type_id", referencedColumnName = "id")
@@ -287,6 +301,8 @@ public class Transaction implements Serializable {
 		this.orderNumber = orderNumber;
 	}
 
+	@XmlTransient
+	@JsonIgnore
 	public List<TransactionNurseList> getNurseList() {
 		return nurseList;
 	}
@@ -295,6 +311,8 @@ public class Transaction implements Serializable {
 		this.nurseList = nurseList;
 	}
 
+	@XmlTransient
+	@JsonIgnore
 	public List<TransactionDoctorList> getDoctorList() {
 		return doctorList;
 	}
@@ -368,5 +386,30 @@ public class Transaction implements Serializable {
 	public void setIdClinic(Clinic idClinic) {
 		this.idClinic = idClinic;
 	}
+
+	public String getDiagnosis() {
+		return diagnosis;
+	}
+
+	public void setDiagnosis(String diagnosis) {
+		this.diagnosis = diagnosis;
+	}
+
+	public String getMedicine() {
+		return medicine;
+	}
+
+	public void setMedicine(String medicine) {
+		this.medicine = medicine;
+	}
+
+	public String getNurseAction() {
+		return nurseAction;
+	}
+
+	public void setNurseAction(String nurseAction) {
+		this.nurseAction = nurseAction;
+	}
+	
 	
 }

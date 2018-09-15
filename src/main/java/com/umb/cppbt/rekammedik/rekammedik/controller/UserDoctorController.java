@@ -228,7 +228,7 @@ public class UserDoctorController {
 			Long id = new Long(value);
 			data = userDoctorDbRepository.findDoctorById(id, createPageRequest(page, size, sort, sortField));
 		}
-		else if(searchField.equals("nurseCode")){
+		else if(searchField.equals("doctorCode")){
 			data = userDoctorDbRepository.findDoctorByDoctorCode(value, createPageRequest(page, size, sort, sortField));
 		}
 		else if(searchField.equals("email")){

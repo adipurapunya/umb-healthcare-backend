@@ -6,6 +6,7 @@
 package com.umb.cppbt.rekammedik.rekammedik.domain;
 
 import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -14,10 +15,13 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.xml.bind.annotation.XmlTransient;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
-@Table(name = "transaction_service_list")
+@Table(name = "service_list_forTrx")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class TransactionServiceList implements Serializable {
     
@@ -32,10 +36,10 @@ public class TransactionServiceList implements Serializable {
     @ManyToOne
     private Services services;
 	
-    @JoinColumn(name = "transaction_id", referencedColumnName = "id")
+	@JoinColumn(name = "transaction_id", referencedColumnName = "id")
     @ManyToOne
     private Transaction idTransaction;
-
+	
 	public TransactionServiceList() {
 		super();
 		// TODO Auto-generated constructor stub
@@ -57,6 +61,8 @@ public class TransactionServiceList implements Serializable {
 		this.services = services;
 	}
 
+	@XmlTransient
+	@JsonIgnore
 	public Transaction getIdTransaction() {
 		return idTransaction;
 	}
