@@ -18,6 +18,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -121,6 +122,9 @@ public class Transaction implements Serializable {
 	
 	@OneToMany(mappedBy = "idTransaction",  cascade= CascadeType.REMOVE)
     private List<TransactionServiceList> serviceList;
+	
+	@OneToOne(mappedBy = "idTransaction",  cascade= CascadeType.REMOVE)
+    private TransactionVitalSign vitalSign;
     
 	@JoinColumn(name = "transaction_type_id", referencedColumnName = "id")
     @ManyToOne
@@ -410,6 +414,15 @@ public class Transaction implements Serializable {
 	public void setNurseAction(String nurseAction) {
 		this.nurseAction = nurseAction;
 	}
-	
+
+	@XmlTransient
+	@JsonIgnore
+	public TransactionVitalSign getVitalSign() {
+		return vitalSign;
+	}
+
+	public void setVitalSign(TransactionVitalSign vitalSign) {
+		this.vitalSign = vitalSign;
+	}
 	
 }

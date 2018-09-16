@@ -37,13 +37,13 @@ import com.umb.cppbt.rekammedik.rekammedik.domain.Transaction;
 import com.umb.cppbt.rekammedik.rekammedik.domain.TransactionDoctorList;
 import com.umb.cppbt.rekammedik.rekammedik.domain.TransactionNurseList;
 import com.umb.cppbt.rekammedik.rekammedik.domain.TransactionServiceList;
-import com.umb.cppbt.rekammedik.rekammedik.domain.UserAdmin;
-import com.umb.cppbt.rekammedik.rekammedik.domain.UserClinic;
-import com.umb.cppbt.rekammedik.rekammedik.domain.UserPatient;
+import com.umb.cppbt.rekammedik.rekammedik.domain.TransactionVitalSign;
 import com.umb.cppbt.rekammedik.rekammedik.repository.TransactionDbRepository;
 import com.umb.cppbt.rekammedik.rekammedik.repository.TransactionListDoctorDbRepository;
 import com.umb.cppbt.rekammedik.rekammedik.repository.TransactionListNurseDbRepository;
 import com.umb.cppbt.rekammedik.rekammedik.repository.TransactionListServicesDbRepository;
+import com.umb.cppbt.rekammedik.rekammedik.repository.TransactionVitalSignDbRepository;
+import com.umb.cppbt.rekammedik.rekammedik.repository.UserClinicDbRepository;
 
 
 @RestController
@@ -63,6 +63,12 @@ public class TransactionController {
 	
 	@Autowired
 	private TransactionListDoctorDbRepository transactionListDoctorDbRepository;
+	
+	@Autowired
+	private TransactionVitalSignDbRepository transactionVitalSignDbRepository;
+	
+	@Autowired
+	private UserClinicDbRepository userClinicDbRepository;
 	
 	private Pageable createPageRequest(int page, int size, String sort, String field) {
 		Sort sorts;
@@ -106,8 +112,6 @@ public class TransactionController {
 			respons.setHttpStatus(HttpStatus.FORBIDDEN);
 			return new ResponseEntity<Object>(respons , HttpStatus.FORBIDDEN);
 		}
-		
-		
 	}
 	
 	@PreAuthorize("hasAnyRole('ADMIN', 'CLINIC')")
@@ -138,9 +142,46 @@ public class TransactionController {
 			respons.setDate(dateFormat.format(date));
 			respons.setHttpStatus(HttpStatus.FORBIDDEN);
 			return new ResponseEntity<Object>(respons , HttpStatus.FORBIDDEN);
-		}
+		}	
+	}
+	
+	@PreAuthorize("hasAnyRole('ADMIN', 'CLINIC', 'NURSE', 'DOCTOR')")
+	@RequestMapping(value = "/transaction/addVitalSign/{id}", method = RequestMethod.POST)
+	public ResponseEntity<Object> addVitalSignToTrx(@PathVariable(value = "id") Long id, @RequestBody TransactionVitalSign transactionVitalSign) 
+	{
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Date date = new Date();
 		
+		//System.out.println(transactionVitalSign.getIdTransaction() + " "+ transactionVitalSign.getHeartBeat());
 		
+		TransactionVitalSign data = transactionVitalSignDbRepository.findVitalSignByIdTransaction(id);
+		
+		if(transactionVitalSign.getDiastol() != null){data.setDiastol(transactionVitalSign.getDiastol());}
+		if(transactionVitalSign.getSistol() != null){data.setSistol(transactionVitalSign.getSistol());}
+		if(transactionVitalSign.getHeartBeat() != null){data.setHeartBeat(transactionVitalSign.getHeartBeat());}
+		if(transactionVitalSign.getPulseOximetry() != null){data.setPulseOximetry(transactionVitalSign.getPulseOximetry());}
+		if(transactionVitalSign.getRespiratory() != null){data.setRespiratory(transactionVitalSign.getRespiratory());}
+		if(transactionVitalSign.getTemperature() != null){data.setTemperature(transactionVitalSign.getTemperature());}
+		if(transactionVitalSign.getIdTransaction() != null){data.setIdTransaction(transactionVitalSign.getIdTransaction());}
+		
+		transactionVitalSignDbRepository.save(data);
+		
+		String message = "Succesfully, Vital sign have been added to this transaction with Id "+id;
+		
+		OrderRespons respons = new OrderRespons();
+		respons.setMessage(message);
+		respons.setDate(dateFormat.format(date));
+		respons.setHttpStatus(HttpStatus.CREATED);
+		
+		return new ResponseEntity<Object>(respons , HttpStatus.CREATED);
+	}
+	
+	@PreAuthorize("hasAnyRole('ADMIN', 'CLINIC', 'NURSE', 'DOCTOR', 'PATIENT')")
+	@RequestMapping(value = "/transaction/getVitalSign/{id}", method = RequestMethod.GET)
+	public TransactionVitalSign getVitalSignFromTrx(@PathVariable Long id) {
+		TransactionVitalSign data = transactionVitalSignDbRepository.findVitalSignByIdTransaction(id);
+		logger.info("Fetching vital sign from transaction with id "+id);
+		return data;
 	}
 	
 	
@@ -163,6 +204,7 @@ public class TransactionController {
 		transaction.setPredictionPrice("0");
 				
 		Transaction trx = transactionDbRepository.save(transaction);
+		transactionVitalSignDbRepository.save(new TransactionVitalSign(null,null,null,null,null,null,trx));
 		
 		for(TransactionServiceList lst: transaction.getServiceList()){
 			//System.out.println(lst.getId());
@@ -212,16 +254,13 @@ public class TransactionController {
 	public ResponseEntity<Object> updateTransaction(@PathVariable(value = "id") Long id,@RequestBody Transaction transaction ,  @RequestHeader(value="Authorization") String token) 
 	{
 		Claims claims = Jwts.parser().setSigningKey("secretkey").parseClaimsJws(token).getBody();
-		
 		int idUserFromToken = (Integer) claims.get("id");
 		List<String> roleUserFromToken = (List<String>) claims.get("roles");
 		
 		//if(id == idUserFromToken || roleUserFromToken.contains("ROLE_ADMIN") == false){
 		if(id != null){		
 			Transaction findFirst = transactionDbRepository.getOne(id);
-			
 			String mes = null ;
-			
 			if(findFirst == null) {
 				ResponMessage message = new ResponMessage();
 				message.setStatus(HttpStatus.NOT_FOUND);
@@ -246,13 +285,10 @@ public class TransactionController {
 			if(transaction.getNurseAction() != null) findFirst.setNurseAction(transaction.getNurseAction());
 			
 			mes = "Succesfully Update trx with id "+ findFirst.getId();
-	
-			transactionDbRepository.save(findFirst);
-			
+			transactionDbRepository.save(findFirst);		
 			ResponMessage message = new ResponMessage();
 			message.setStatus(HttpStatus.OK);
 			message.setMessage(mes);
-			
 			return new ResponseEntity<Object>(message, new HttpHeaders() ,HttpStatus.OK);
 		}else{
 			logger.info("user UNAUTHORIZED");
@@ -274,11 +310,23 @@ public class TransactionController {
 	
 	@PreAuthorize("hasAnyRole('ADMIN', 'CLINIC', 'NURSE', 'DOCTOR', 'PATIENT')")
 	@RequestMapping(value = "/transactionWithPaginationByIdClinic", method = RequestMethod.GET)
-	public Page<Transaction> getAllTransactionWithPaginationByIdClinic(@RequestParam("page") int page, @RequestParam("size") int size, @RequestParam("sort") String sort, @RequestParam("sortField") String sortField, @RequestParam("clinicId") Integer clinicId) {
-		Long id = new Long(clinicId);
-		Page<Transaction> data = transactionDbRepository.findTransactionWithPaginationByIdClinic(id,createPageRequest(page, size, sort, sortField));
-		logger.info("Fetching All transaction with pagination order by " + sortField + " " + sort +" by id clinic "+ id);
-		return data;
+	public ResponseEntity<Object> getAllTransactionWithPaginationByIdClinic(@RequestParam("page") int page, @RequestParam("size") int size, @RequestParam("sort") String sort, @RequestParam("sortField") String sortField, @RequestParam("clinicId") Integer clinicId, @RequestHeader(value="Authorization") String token) {
+		Claims claims = Jwts.parser().setSigningKey("secretkey").parseClaimsJws(token).getBody();
+		int idUserClinicFromToken = (Integer) claims.get("id");
+		Long idClinicTarget = new Long(clinicId);
+		Long idClinicActual = userClinicDbRepository.findIdClinicByIdUserClinic(new Long(idUserClinicFromToken));
+		
+		if(idClinicActual.equals(idClinicTarget)){
+			Page<Transaction> data = transactionDbRepository.findTransactionWithPaginationByIdClinic(idClinicTarget,createPageRequest(page, size, sort, sortField));
+			logger.info("Fetching All transaction with pagination order by " + sortField + " " + sort +" by id clinic "+ idClinicTarget);
+			return new ResponseEntity<Object>(data , new HttpHeaders() ,HttpStatus.OK);
+		}else{
+			logger.info("UNAUTHORIZED, You can not see another data outside you clinic !");
+			ResponMessage error = new ResponMessage();
+			error.setStatus(HttpStatus.UNAUTHORIZED);
+			error.setMessage("UNAUTHORIZED, You can not see another data with id clinic = " + idClinicTarget + ". You can only see data with id clinic = "+idClinicActual + " !");
+			return new ResponseEntity<Object>(error , new HttpHeaders() ,HttpStatus.UNAUTHORIZED);
+		}
 	}
 	
 	@PreAuthorize("hasAnyRole('ADMIN', 'CLINIC', 'PATIENT')")
@@ -292,22 +340,31 @@ public class TransactionController {
 	
 	@PreAuthorize("hasAnyRole('ADMIN', 'CLINIC', 'NURSE', 'DOCTOR', 'PATIENT')")
 	@RequestMapping(value = "/transactionWithPaginationByFieldByIdClinic", method = RequestMethod.GET)
-	public Page<Transaction> getAllTransactionWithPaginationByFieldByIdClinic(@RequestParam("page") int page, @RequestParam("size") int size, @RequestParam("sort") String sort, @RequestParam("sortField") String sortField, @RequestParam("searchField") String searchField, @RequestParam("value") String value, @RequestParam("clinicId") Integer clinicId) {
+	public ResponseEntity<Object> getAllTransactionWithPaginationByFieldByIdClinic(@RequestParam("page") int page, @RequestParam("size") int size, @RequestParam("sort") String sort, @RequestParam("sortField") String sortField, @RequestParam("searchField") String searchField, @RequestParam("value") String value, @RequestParam("clinicId") Integer clinicId, @RequestHeader(value="Authorization") String token) {
 		
 		Page<Transaction> data = null;
-		Long idClinic = new Long(clinicId);
+		Claims claims = Jwts.parser().setSigningKey("secretkey").parseClaimsJws(token).getBody();
+		int idUserClinicFromToken = (Integer) claims.get("id");
+		Long idClinicTarget = new Long(clinicId);
+		Long idClinicActual = userClinicDbRepository.findIdClinicByIdUserClinic(new Long(idUserClinicFromToken));
 		
-		if(searchField.equals("orderNumber")){
-			data = transactionDbRepository.findTransactionByOrderNumberByIdClinic(value, idClinic ,createPageRequest(page, size, sort, sortField));
+		if(idClinicActual.equals(idClinicTarget)){
+			if(searchField.equals("orderNumber")){
+				data = transactionDbRepository.findTransactionByOrderNumberByIdClinic(value, idClinicTarget ,createPageRequest(page, size, sort, sortField));
+			}
+			else if(searchField.equals("id")){
+				Long id = new Long(value);
+				data = transactionDbRepository.findTransactionByIdByIdClinic(id, idClinicTarget ,createPageRequest(page, size, sort, sortField));
+			}
+			logger.info("Fetching transaction with "+ searchField +" order by " + sortField + " " + sort);
+			return new ResponseEntity<Object>(data , new HttpHeaders() ,HttpStatus.OK);
+		}else{
+			logger.info("UNAUTHORIZED, You can not see another data outside you clinic !");
+			ResponMessage error = new ResponMessage();
+			error.setStatus(HttpStatus.UNAUTHORIZED);
+			error.setMessage("UNAUTHORIZED, You can not see another data with id clinic = " + idClinicTarget + ". You can only see data with id clinic = "+idClinicActual + " !");
+			return new ResponseEntity<Object>(error , new HttpHeaders() ,HttpStatus.UNAUTHORIZED);
 		}
-		else if(searchField.equals("id")){
-			Long id = new Long(value);
-			data = transactionDbRepository.findTransactionByIdByIdClinic(id, idClinic ,createPageRequest(page, size, sort, sortField));
-		}
-		
-		logger.info("Fetching transaction with "+ searchField +" order by " + sortField + " " + sort);
-		
-		return data;
 	}
 	
 	@PreAuthorize("hasAnyRole('ADMIN', 'CLINIC','PATIENT')")
@@ -316,7 +373,6 @@ public class TransactionController {
 		
 		Page<Transaction> data = null;
 		Long idClinic = new Long(patientId);
-		
 		if(searchField.equals("orderNumber")){
 			data = transactionDbRepository.findTransactionByOrderNumberByIdPatient(value, idClinic ,createPageRequest(page, size, sort, sortField));
 		}
@@ -324,9 +380,7 @@ public class TransactionController {
 			Long id = new Long(value);
 			data = transactionDbRepository.findTransactionByIdByIdPatient(id, idClinic ,createPageRequest(page, size, sort, sortField));
 		}
-		
 		logger.info("Fetching transaction with "+ searchField +" order by " + sortField + " " + sort);
-		
 		return data;
 	}
 	
@@ -335,7 +389,6 @@ public class TransactionController {
 	public Page<Transaction> getAllTransactionWithPaginationByField(@RequestParam("page") int page, @RequestParam("size") int size, @RequestParam("sort") String sort, @RequestParam("sortField") String sortField, @RequestParam("searchField") String searchField, @RequestParam("value") String value) {
 	
 		Page<Transaction> data = null;
-		
 		if(searchField.equals("orderNumber")){
 			data = transactionDbRepository.findTransactionByOrderNumber(value, createPageRequest(page, size, sort, sortField));
 		}
@@ -343,7 +396,6 @@ public class TransactionController {
 			Long id = new Long(value);
 			data = transactionDbRepository.findTransactionById(id, createPageRequest(page, size, sort, sortField));
 		}
-		
 		return data;
 	}
 	
@@ -359,7 +411,7 @@ public class TransactionController {
 	
 	@PreAuthorize("hasAnyRole('ADMIN', 'CLINIC')")
 	@RequestMapping(value = "/transaction/deleteNurseList", method = RequestMethod.POST)
-	public Page<TransactionNurseList> deleteNurseListWithPagination(@RequestParam("idTrx") Long idTrx, @RequestParam("id") Long id) {
+	public Page<TransactionNurseList> deleteNurseListForEveryTrx(@RequestParam("idTrx") Long idTrx, @RequestParam("id") Long id) {
 		
 		Page<TransactionNurseList> data = null;
 		transactionListNurseDbRepository.deleteById(id);
@@ -391,7 +443,7 @@ public class TransactionController {
 	
 	@PreAuthorize("hasAnyRole('ADMIN', 'CLINIC')")
 	@RequestMapping(value = "/transaction/deleteDoctorList", method = RequestMethod.POST)
-	public Page<TransactionDoctorList> deleteDoctorListWithPagination(@RequestParam("idTrx") Long idTrx, @RequestParam("id") Long id) {
+	public Page<TransactionDoctorList> deleteDoctorListForEveryTrx(@RequestParam("idTrx") Long idTrx, @RequestParam("id") Long id) {
 		
 		Page<TransactionDoctorList> data = null;
 		transactionListDoctorDbRepository.deleteById(id);

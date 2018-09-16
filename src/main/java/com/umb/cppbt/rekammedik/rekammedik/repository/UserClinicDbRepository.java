@@ -13,6 +13,9 @@ public interface UserClinicDbRepository extends JpaRepository<UserClinic, Long>{
 
 	public UserClinic findUserClinicByEmail(String email);
 	
+	@Query("select u.clinic.id from UserClinic u where u.id = :value")
+	public Long findIdClinicByIdUserClinic(@Param("value")Long id);
+	
 	////////////
 		
 	@Query("select u from UserClinic u where LOWER (u.fullName) LIKE LOWER( CONCAT('%',:value,'%'))")

@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.umb.cppbt.rekammedik.rekammedik.domain.ResponMessage;
 import com.umb.cppbt.rekammedik.rekammedik.domain.UserPatient;
+import com.umb.cppbt.rekammedik.rekammedik.repository.UserClinicDbRepository;
 import com.umb.cppbt.rekammedik.rekammedik.repository.UserPatientDbRepository;
 
 
@@ -39,6 +40,9 @@ public class UserPatientController {
 	
 	@Autowired
 	private UserPatientDbRepository userPatientDbRepository;
+	
+	@Autowired
+	private UserClinicDbRepository userClinicDbRepository;
 	
 	private Pageable createPageRequest(int page, int size, String sort, String field) {
 		Sort sorts;
@@ -206,11 +210,25 @@ public class UserPatientController {
 	
 	@PreAuthorize("hasAnyRole('ADMIN', 'CLINIC', 'NURSE', 'DOCTOR')")
 	@RequestMapping(value = "/patiensWithPaginationByIdClinic", method = RequestMethod.GET)
-	public Page<UserPatient> getAllPatientsWithPaginationByIdClinic(@RequestParam("page") int page, @RequestParam("size") int size, @RequestParam("sort") String sort, @RequestParam("sortField") String sortField, @RequestParam("clinicId") Integer clinicId) {
-		Long id = new Long(clinicId);
-		Page<UserPatient> data = userPatientDbRepository.findPatientWithPaginationByIdClinic(id,createPageRequest(page, size, sort, sortField));
-		logger.info("Fetching All Patient Details with pagination order by " + sortField + " " + sort +" by id clinic "+ id);
-		return data;
+	public ResponseEntity<Object> getAllPatientsWithPaginationByIdClinic(@RequestParam("page") int page, @RequestParam("size") int size, @RequestParam("sort") String sort, @RequestParam("sortField") String sortField, @RequestParam("clinicId") Integer clinicId, @RequestHeader(value="Authorization") String token) {
+		
+		Claims claims = Jwts.parser().setSigningKey("secretkey").parseClaimsJws(token).getBody();
+		int idUserClinicFromToken = (Integer) claims.get("id");
+		Long idClinicTarget = new Long(clinicId);
+		Long idClinicActual = userClinicDbRepository.findIdClinicByIdUserClinic(new Long(idUserClinicFromToken));
+		
+		if(idClinicActual.equals(idClinicTarget)){
+			Page<UserPatient> data = userPatientDbRepository.findPatientWithPaginationByIdClinic(idClinicTarget,createPageRequest(page, size, sort, sortField));
+			logger.info("Fetching All Patient Details with pagination order by " + sortField + " " + sort +" by id clinic "+ idClinicTarget);
+			return new ResponseEntity<Object>(data , new HttpHeaders() ,HttpStatus.OK);
+		}
+		else{
+			logger.info("UNAUTHORIZED, You can not see another data outside you clinic !");
+			ResponMessage error = new ResponMessage();
+			error.setStatus(HttpStatus.UNAUTHORIZED);
+			error.setMessage("UNAUTHORIZED, You can not see another data with id clinic = " + idClinicTarget + ". You can only see data with id clinic = "+idClinicActual + " !");
+			return new ResponseEntity<Object>(error , new HttpHeaders() ,HttpStatus.UNAUTHORIZED);
+		}	
 	}
 	
 	@PreAuthorize("hasAnyRole('ADMIN', 'CLINIC', 'NURSE', 'DOCTOR')")
@@ -246,34 +264,44 @@ public class UserPatientController {
 	
 	@PreAuthorize("hasAnyRole('ADMIN', 'CLINIC', 'NURSE', 'DOCTOR')")
 	@RequestMapping(value = "/patiensWithPaginationByFieldByIdClinic", method = RequestMethod.GET)
-	public Page<UserPatient> getAllUsersWithPaginationByFieldByIdClinic(@RequestParam("page") int page, @RequestParam("size") int size, @RequestParam("sort") String sort, @RequestParam("sortField") String sortField, @RequestParam("searchField") String searchField, @RequestParam("value") String value, @RequestParam("clinicId") Integer clinicId) {
+	public ResponseEntity<Object> getAllUsersWithPaginationByFieldByIdClinic(@RequestParam("page") int page, @RequestParam("size") int size, @RequestParam("sort") String sort, @RequestParam("sortField") String sortField, @RequestParam("searchField") String searchField, @RequestParam("value") String value, @RequestParam("clinicId") Integer clinicId, @RequestHeader(value="Authorization") String token) {
 		
 		Page<UserPatient> data = null;
-		Long idClinic = new Long(clinicId);
+		Claims claims = Jwts.parser().setSigningKey("secretkey").parseClaimsJws(token).getBody();
+		int idUserClinicFromToken = (Integer) claims.get("id");
+		Long idClinicTarget = new Long(clinicId);
+		Long idClinicActual = userClinicDbRepository.findIdClinicByIdUserClinic(new Long(idUserClinicFromToken));
 		
-		if(searchField.equals("fullName")){
-			data = userPatientDbRepository.findPatientByFullNameByIdClinic(value, idClinic ,createPageRequest(page, size, sort, sortField));
+		if(idClinicActual.equals(idClinicTarget)){
+			if(searchField.equals("fullName")){
+				data = userPatientDbRepository.findPatientByFullNameByIdClinic(value, idClinicTarget ,createPageRequest(page, size, sort, sortField));
+			}
+			else if(searchField.equals("id")){
+				Long id = new Long(value);
+				data = userPatientDbRepository.findPatientByIdByIdClinic(id, idClinicTarget ,createPageRequest(page, size, sort, sortField));
+			}
+			else if(searchField.equals("patientCode")){
+				data = userPatientDbRepository.findPatientByPatientCodeByIdClinic(value, idClinicTarget ,createPageRequest(page, size, sort, sortField));
+			}
+			else if(searchField.equals("email")){
+				data = userPatientDbRepository.findPatientByEmailByIdClinic(value, idClinicTarget ,createPageRequest(page, size, sort, sortField));
+			}
+			else if(searchField.equals("phoneNumber")){
+				data = userPatientDbRepository.findPatientByPhoneNumberByIdClinic(value, idClinicTarget ,createPageRequest(page, size, sort, sortField));
+			}
+			else if(searchField.equals("deviceCode")){
+				data = userPatientDbRepository.findPatientByDeviceCodeByIdClinic(value, idClinicTarget ,createPageRequest(page, size, sort, sortField));
+			}
+			logger.info("Fetching patients with "+ searchField +" order by " + sortField + " " + sort);
+			return new ResponseEntity<Object>(data , new HttpHeaders() ,HttpStatus.OK);
 		}
-		else if(searchField.equals("id")){
-			Long id = new Long(value);
-			data = userPatientDbRepository.findPatientByIdByIdClinic(id, idClinic ,createPageRequest(page, size, sort, sortField));
+		else{
+			logger.info("UNAUTHORIZED, You can not see another data outside you clinic !");
+			ResponMessage error = new ResponMessage();
+			error.setStatus(HttpStatus.UNAUTHORIZED);
+			error.setMessage("UNAUTHORIZED, You can not see another data with id clinic = " + idClinicTarget + ". You can only see data with id clinic = "+idClinicActual + " !");
+			return new ResponseEntity<Object>(error , new HttpHeaders() ,HttpStatus.UNAUTHORIZED);
 		}
-		else if(searchField.equals("patientCode")){
-			data = userPatientDbRepository.findPatientByPatientCodeByIdClinic(value, idClinic ,createPageRequest(page, size, sort, sortField));
-		}
-		else if(searchField.equals("email")){
-			data = userPatientDbRepository.findPatientByEmailByIdClinic(value, idClinic ,createPageRequest(page, size, sort, sortField));
-		}
-		else if(searchField.equals("phoneNumber")){
-			data = userPatientDbRepository.findPatientByPhoneNumberByIdClinic(value, idClinic ,createPageRequest(page, size, sort, sortField));
-		}
-		else if(searchField.equals("deviceCode")){
-			data = userPatientDbRepository.findPatientByDeviceCodeByIdClinic(value, idClinic ,createPageRequest(page, size, sort, sortField));
-		}
-		
-		logger.info("Fetching patients with "+ searchField +" order by " + sortField + " " + sort);
-		
-		return data;
 	}
 	
 }
