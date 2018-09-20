@@ -5,7 +5,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
 import com.umb.cppbt.rekammedik.rekammedik.domain.UserClinic;
 
 
@@ -57,5 +56,6 @@ public interface UserClinicDbRepository extends JpaRepository<UserClinic, Long>{
 	
 	@Query("select u from UserClinic u")
 	public Page<UserClinic> findUserClinicWithPagination(Pageable page);
+
 		
 }
