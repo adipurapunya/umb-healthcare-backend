@@ -40,17 +40,21 @@ public class Services implements Serializable {
     @Column(name = "price")
     private Float price;
     
-   
+    @Column(name = "status_active")
+    private Boolean statusActive = true;
+    
+    
 	public Services() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
 
-	public Services(@Size(max = 100) String nameOfservices, @Size(max = 20) String codeOfservices, Float price) {
+	public Services(@Size(max = 100) String nameOfservices, @Size(max = 20) String codeOfservices, Float price, Boolean statusActive) {
 		super();
 		this.nameOfservices = nameOfservices;
 		this.codeOfservices = codeOfservices;
 		this.price = price;
+		this.statusActive = statusActive;
 	}
 
 	public Long getId() {
@@ -85,6 +89,12 @@ public class Services implements Serializable {
 		this.price = price;
 	}
 
-	
-        
+	public Boolean getStatusActive() {
+		return statusActive;
+	}
+
+	public void setStatusActive(Boolean statusActive) {
+		this.statusActive = statusActive;
+	}
+   
 }

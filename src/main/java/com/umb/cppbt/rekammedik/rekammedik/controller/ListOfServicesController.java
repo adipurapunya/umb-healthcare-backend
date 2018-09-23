@@ -229,6 +229,7 @@ public class ListOfServicesController {
 			if(services.getNameOfservices() != null){svcTmp.setNameOfservices(services.getNameOfservices());}
 			if(services.getCodeOfservices() != null){svcTmp.setCodeOfservices(services.getCodeOfservices());}
 			if(services.getPrice() != null){svcTmp.setPrice(services.getPrice());}
+			if(services.getStatusActive() != null) {svcTmp.setStatusActive(services.getStatusActive());}
 			serviceDbRepository.save(svcTmp);
 			logger.info("OK, update data succesfull !");
 			ResponMessage error = new ResponMessage();

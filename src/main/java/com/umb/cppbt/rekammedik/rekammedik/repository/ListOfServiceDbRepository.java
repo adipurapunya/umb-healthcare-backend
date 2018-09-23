@@ -15,7 +15,7 @@ import com.umb.cppbt.rekammedik.rekammedik.domain.Services;
 
 public interface ListOfServiceDbRepository extends JpaRepository<ListOfServices, Long> {
 	
-	@Query("SELECT L.services FROM ListOfServices L WHERE L.clinic.id = :idClinic")
+	@Query("SELECT L.services FROM ListOfServices L WHERE L.clinic.id = :idClinic AND L.services.statusActive = true")
 	public List<Services> findByClinicIdWithCustomQuery(@Param("idClinic")Long idClinic);
 	
 	@Query("SELECT L.services FROM ListOfServices L WHERE L.clinic.id = :idClinic")
