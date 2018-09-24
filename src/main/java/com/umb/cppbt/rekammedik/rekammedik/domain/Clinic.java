@@ -44,6 +44,13 @@ public class Clinic implements Serializable {
     @Size(max = 20)
     @Column(name = "status")
     private String status;
+    
+    @Column(name = "status_active")
+    private Boolean statusActive;
+    
+    @Size(max = 20)
+    @Column(name = "challenge_code")
+    private String challengeCode;
 
 	public Clinic() {
 		super();
@@ -52,12 +59,17 @@ public class Clinic implements Serializable {
 
 	public Clinic(@Size(max = 100) String nameOfClinic,
 			@Size(max = 20) String codeOfClinic,
-			@Size(max = 255) String address, @Size(max = 20) String status) {
+			@Size(max = 255) String address, 
+			@Size(max = 20) String status, 
+			Boolean statusActive,
+			@Size(max = 20) String challengeCode) {
 		super();
 		this.nameOfClinic = nameOfClinic;
 		this.codeOfClinic = codeOfClinic;
 		this.address = address;
 		this.status = status;
+		this.statusActive = statusActive;
+		this.challengeCode = challengeCode;
 	}
 
 	public Long getId() {
@@ -99,6 +111,21 @@ public class Clinic implements Serializable {
 	public void setStatus(String status) {
 		this.status = status;
 	}
-    
 
+	public Boolean getStatusActive() {
+		return statusActive;
+	}
+
+	public void setStatusActive(Boolean statusActive) {
+		this.statusActive = statusActive;
+	}
+
+	public String getChallengeCode() {
+		return challengeCode;
+	}
+
+	public void setChallengeCode(String challengeCode) {
+		this.challengeCode = challengeCode;
+	}
+	
 }
